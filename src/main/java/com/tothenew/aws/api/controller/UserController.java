@@ -1,8 +1,7 @@
 package com.tothenew.aws.api.controller;
 
-import com.tothenew.aws.api.exception.ResourceNotFoundException;
 import com.tothenew.aws.api.model.User;
-import com.tothenew.aws.api.repository.UserRepository;
+import com.tothenew.aws.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,39 +13,31 @@ import java.util.List;
 public class UserController {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
-    @GetMapping
-    public List<User> getAllUsers() {
-        return this.userRepository.findAll();
+    @PostMapping
+    public User createUser(@RequestBody User user) {
+        return this.userService.saveUser(user);
     }
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable(value = "id") long userId) {
-        return this.userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id :" + userId));
+        return this.userService.findUserById(userId);
     }
 
-    @PostMapping
-    public User createUser(@RequestBody User user) {
-        return this.userRepository.save(user);
+    @GetMapping
+    public List<User> getAllUsers() {
+        return this.userService.findAllUsers();
     }
 
     @PutMapping("/{id}")
     public User updateUser(@RequestBody User user, @PathVariable("id") long userId) {
-        User existingUser = this.userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id :" + userId));
-        existingUser.setFirstName(user.getFirstName());
-        existingUser.setLastName(user.getLastName());
-        existingUser.setEmail(user.getEmail());
-        return this.userRepository.save(existingUser);
+        return this.userService.updateUser(user, userId);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<User> deleteUser(@PathVariable("id") long userId) {
-        User existingUser = this.userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id :" + userId));
-        this.userRepository.delete(existingUser);
+        this.userService.deleteUser(userId);
         return ResponseEntity.ok().build();
     }
 
